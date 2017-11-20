@@ -19,7 +19,9 @@ class DeepQNetwork:
         epsilon_max=0.9,
         epsilon_greedy_increment=0.001,
         batch_size=32,
-        reward_decay=0.9
+        reward_decay=0.9,
+        load_path=None,
+        save_path=None
     ):
 
         self.n_y = n_y
@@ -31,6 +33,9 @@ class DeepQNetwork:
         self.epsilon_greedy_increment = epsilon_greedy_increment
         self.batch_size = batch_size
         self.reward_decay = reward_decay # this is gamma
+
+        if save_path is not None:
+            self.save_path = save_path
 
         self.memory_counter = 0
         self.learn_step_counter = 0
@@ -64,6 +69,14 @@ class DeepQNetwork:
 
         init = tf.global_variables_initializer()
         self.sess.run(init)
+
+        # 'Saver' op to save and restore all the variables
+        self.saver = tf.train.Saver()
+
+        # Restore model
+        if load_path is not None:
+            self.load_path = load_path
+            self.saver.restore(self.sess, self.load_path)
 
     def store_transition(self, s, a, r, s_):
         # Replace old memory with new memory
@@ -102,8 +115,15 @@ class DeepQNetwork:
         self.sess.run( [ tf.assign(t,e) for t, e in zip(t_params, e_params) ] )
 
     def learn(self):
+        # Replace target params
         if self.learn_step_counter % self.replace_target_iter == 0:
             self.replace_target_net_parameters()
+
+        # Save checkpoint
+        if self.learn_step_counter % (self.replace_target_iter * 10) == 0:
+            if self.save_path is not None:
+                save_path = self.saver.save(self.sess, self.save_path)
+                print("Model saved in file: %s" % save_path)
 
         # Get a memory sample
         index_range = min(self.memory_counter, self.memory_size)

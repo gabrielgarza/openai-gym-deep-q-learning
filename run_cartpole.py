@@ -15,6 +15,11 @@ print(env.observation_space)
 print(env.observation_space.high)
 print(env.observation_space.low)
 
+
+# Load checkpoint
+load_path = "weights/CartPole-v0.ckpt"
+save_path = "weights/CartPole-v0-2.ckpt"
+
 # Initialize DQN
 DQN = DeepQNetwork(  n_y=env.action_space.n,
                     n_x=env.observation_space.shape[0],
@@ -23,7 +28,10 @@ DQN = DeepQNetwork(  n_y=env.action_space.n,
                     memory_size=2000,
                     batch_size=32,
                     epsilon_max=0.9,
-                    epsilon_greedy_increment=0.001
+                    epsilon_greedy_increment=0.001,
+                    load_path=load_path,
+                    save_path=save_path
+
                 )
 
 
@@ -32,6 +40,7 @@ EPISODES = 500
 rewards = []
 RENDER_REWARD_MIN = 800
 total_steps_counter = 0
+
 
 for episode in range(400):
 
